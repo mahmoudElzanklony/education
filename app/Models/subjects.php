@@ -17,6 +17,11 @@ class subjects extends Model
         return $this->belongsTo(categories::class,'category_id');
     }
 
+    public function videos()
+    {
+        return $this->hasMany(subjects_videos::class,'subject_id');
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class,'user_id');

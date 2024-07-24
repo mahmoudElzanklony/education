@@ -22,6 +22,8 @@ use App\Http\Controllers\SubjectsControllerResource;
 use App\Http\Controllers\SubjectsVideosControllerResource;
 use App\Http\Controllers\SubscriptionsControllerResource;
 use App\Http\Controllers\VideoViewController;
+use App\Http\Controllers\BillsControllerResource;
+use App\Http\Controllers\UsersController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -48,18 +50,14 @@ Route::group(['middleware'=>'changeLang'],function (){
         Route::post('/new-password',[ForgetPasswordController::class,'new_password']);
         Route::post('/logout',[LoginController::class,'logout']);
     });
-    // orders
-    Route::group(['prefix'=>'/orders','middleware'=>'auth:sanctum'],function (){
-       Route::get('/',[OrdersController::class,'index']);
-       Route::post('/create',[OrdersController::class,'create']);
-       Route::post('/update-status',[OrdersController::class,'update_status'])->middleware('admin');
-       Route::post('/remove-item',[OrdersController::class,'remove_item']);
-       Route::post('/cancel',[OrdersController::class,'cancel']);
-       Route::post('/validate-coupon',[OrdersController::class,'validate_coupon']);
+
+    // get users
+    Route::group(['prefix'=>'/users','middleware'=>'auth:sanctum'],function (){
+        Route::get('/',[UsersController::class,'index']);
     });
-    // rates
-    Route::group(['prefix'=>'/rates','middleware'=>'auth:sanctum'],function (){
-        Route::post('/create',[RatesController::class,'create']);
+    // get subjects for specific user
+    Route::group(['prefix'=>'/subjects-per-user','middleware'=>'auth:sanctum'],function (){
+        Route::get('/',[SubjectsControllerResource::class,'per_user']);
     });
     // notifications
     Route::group(['prefix'=>'/notifications','middleware'=>'auth:sanctum'],function (){
@@ -70,29 +68,19 @@ Route::group(['middleware'=>'changeLang'],function (){
     Route::group(['prefix'=>'/profile','middleware'=>'auth:sanctum'],function (){
         Route::post('/update-info',[ProfileController::class,'update_info']);
     });
-    // profile
+    // video view
     Route::group(['prefix'=>'/video-view','middleware'=>'auth:sanctum'],function (){
         Route::post('/seen',[VideoViewController::class,'seen']);
         Route::get('/statics',[VideoViewController::class,'statics']);
     });
-    // admin panel
-    Route::group(['prefix'=>'/dashboard','middleware'=>'auth:sanctum'],function (){
-        Route::get('/users',[DashboardController::class,'users']);
-        Route::get('/orders-statistics',[DashboardController::class,'orders']);
-        Route::get('/orders-summary',[DashboardController::class,'orders_summary']);
-        Route::post('/add-money-to-wallet',[DashboardController::class,'add_money_to_wallet']);
-        Route::post('/update-tax',[DashboardController::class,'update_tax']);
-        Route::get('/get-tax',[DashboardController::class,'get_tax']);
-        Route::group(['prefix'=>'/notifications-schedule','middleware'=>'auth:sanctum'],function (){
-            Route::post('/save',[DashboardController::class,'create_notification_content']);
-        });
-    });
+
     // resources
     Route::resources([
         'categories'=>CategoriesControllerResource::class,
         'subjects'=>SubjectsControllerResource::class,
         'subjects-videos'=>SubjectsVideosControllerResource::class,
-        'subscriptions'=>SubscriptionsControllerResource::class
+        'subscriptions'=>SubscriptionsControllerResource::class,
+        'bills'=>BillsControllerResource::class
     ]);
 
     Route::post('/deleteitem',[GeneralServiceController::class,'delete_item']);

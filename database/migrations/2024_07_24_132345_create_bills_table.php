@@ -11,14 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('subjects', function (Blueprint $table) {
+        Schema::create('bills', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('category_id')->constrained('subjects')->cascadeOnUpdate()->cascadeOnDelete();
-            $table->string('name');
-            $table->string('semester');
-            $table->string('price');
+            $table->foreignId('doctor_id')
+                ->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->date('start_date');
+            $table->date('end_date');
+            $table->float('total_money');
+            $table->float('remain');
             $table->string('note')->nullable();
-            $table->softDeletes();
             $table->timestamps();
         });
     }
@@ -28,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('subjects');
+        Schema::dropIfExists('bills');
     }
 };

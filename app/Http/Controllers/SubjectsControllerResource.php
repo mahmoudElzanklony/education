@@ -8,11 +8,13 @@ use App\Http\Requests\subjectsFormRequest;
 use App\Http\Resources\CategoryResource;
 use App\Http\Resources\PropertyHeadingResource;
 use App\Http\Resources\SubjectsResource;
+use App\Http\Resources\SubscriptionsResource;
 use App\Models\categories;
 use App\Models\categories_properties;
 use App\Models\properties;
 use App\Models\properties_heading;
 use App\Models\subjects;
+use App\Models\subscriptions;
 use App\Services\FormRequestHandleInputs;
 use App\Services\Messages;
 use Illuminate\Http\Request;
@@ -27,7 +29,7 @@ class SubjectsControllerResource extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth:sanctum')->except('index','show');
+        $this->middleware('auth:sanctum')->except('index');
     }
     public function index()
     {
@@ -74,7 +76,17 @@ class SubjectsControllerResource extends Controller
     public function show(string $id)
     {
         //
-        $data  = subjects::query()->where('id', $id)->FailIfNotFound(__('errors.not_found_data'));
+        $data  = subjects::query()->with('videos')
+            ->where('id', $id)->FailIfNotFound(__('errors.not_found_data'));
+        if(auth()->user()->type == 'client'){
+            $check_sub = subscriptions::query()
+                ->where('user_id','=',auth()->id())
+                ->where('subject_id','=',$id)
+                ->first();
+            if($check_sub == null){
+                return Messages::error('غير مسموح لك برؤيه محتوي الماده');
+            }
+        }
         return SubjectsResource::make($data);
     }
 
@@ -86,6 +98,17 @@ class SubjectsControllerResource extends Controller
         $data = $request->validated();
         $data['id'] = $id;
         return $this->save($data,request()->file('image'));
+    }
+
+
+    public function per_user()
+    {
+        $data = subscriptions::query()
+            ->with('subject.image')
+            ->where('user_id','=',auth()->id())
+            ->orderBy('id','DESC')
+            ->get();
+        return SubscriptionsResource::collection($data);
     }
 
     /**

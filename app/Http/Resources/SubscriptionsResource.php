@@ -19,7 +19,7 @@ class SubscriptionsResource extends JsonResource
           'user_id'=>$this->user_id,
           'subject_id'=>$this->subject_id,
           'user'=>UserResource::make($this->whenLoaded('user')),
-          'subject'=>UserResource::make($this->whenLoaded('subject')),
+          'subject'=>SubjectsResource::make($this->whenLoaded('subject')),
           'price'=>$this->price,
           'discount'=>$this->discount,
           'note'=>$this->note,

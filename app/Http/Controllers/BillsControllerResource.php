@@ -3,20 +3,23 @@
 namespace App\Http\Controllers;
 
 use App\Actions\CheckForUploadImage;
+use App\Filters\DoctorIdFilter;
 use App\Filters\EndDateFilter;
 use App\Filters\orders\RateOrderFilter;
 use App\Filters\orders\StatusOrderFilter;
 use App\Filters\StartDateFilter;
 use App\Filters\SubjectIdFilter;
-use App\Filters\SubscriptionDoctorFilter;
 use App\Filters\UserIdFilter;
+use App\Http\Requests\billFormRequest;
 use App\Http\Requests\categoriesFormRequest;
 use App\Http\Requests\subjectsFormRequest;
 use App\Http\Requests\subscriptionsFormRequest;
+use App\Http\Resources\BillResource;
 use App\Http\Resources\CategoryResource;
 use App\Http\Resources\PropertyHeadingResource;
 use App\Http\Resources\SubjectsResource;
 use App\Http\Resources\SubscriptionsResource;
+use App\Models\bills;
 use App\Models\categories;
 use App\Models\categories_properties;
 use App\Models\properties;
@@ -30,7 +33,7 @@ use App\Http\Traits\upload_image;
 use Illuminate\Pipeline\Pipeline;
 use Illuminate\Support\Facades\DB;
 
-class SubscriptionsControllerResource extends Controller
+class BillsControllerResource extends Controller
 {
     use upload_image;
     /**
@@ -42,21 +45,20 @@ class SubscriptionsControllerResource extends Controller
     }
     public function index()
     {
-        $data = subscriptions::query()
-            ->with(['subject','user'])
+        $data = bills::query()
+            ->with('doctor')
             ->orderBy('id','DESC');
+
         $output = app(Pipeline::class)
             ->send($data)
             ->through([
                 StartDateFilter::class,
                 EndDateFilter::class,
-                UserIdFilter::class,
-                SubjectIdFilter::class,
-                SubscriptionDoctorFilter::class
+                DoctorIdFilter::class,
             ])
             ->thenReturn()
             ->paginate(request('limit') ?? 10);
-        return SubscriptionsResource::collection($output);
+        return BillResource::collection($output);
     }
 
     /**
@@ -65,29 +67,36 @@ class SubscriptionsControllerResource extends Controller
     public function save($data)
     {
         DB::beginTransaction();
-        $data['price'] = subjects::query()->find($data['subject_id'])->price;
-        if(!(array_key_exists('id',$data))){
-            $check = subscriptions::query()
-                ->where('user_id',$data['user_id'])
-                ->where('subject_id',$data['subject_id'])->first();
-            if($check != null){
-                return Messages::error('هذا الطالب تم اشتراكه في هذه الماده من قبل');
-            }
+
+        // Check for overlapping bills
+        $overlappingBill = bills::where('doctor_id', $data['doctor_id'])
+            ->where(function ($query) use ($data) {
+                $query->whereBetween('start_date', [ $data['start_date'], $data['end_date']])
+                    ->orWhereBetween('end_date', [ $data['start_date'], $data['end_date'] ])
+                    ->orWhere(function ($query) use ($data) {
+                        $query->where('start_date', '<=', $data['start_date'])
+                            ->where('end_date', '>=', $data['end_date']);
+                    });
+            })->exists();
+
+        if ($overlappingBill) {
+            return Messages::error('الفتره الزمنيه لانشاء الفاتوره لهذا الدكتور غير صحيحه حيث انها موجوده بالفعل');
         }
 
-        $subject = subscriptions::query()->updateOrCreate([
+
+        $bill = bills::query()->updateOrCreate([
             'id'=>$data['id'] ?? null
         ],$data);
+
         // Load the category with the associated image
-        $subject->load('user');
-        $subject->load('subject');
+        $bill->load('doctor');
 
         DB::commit();
         // return response
-        return Messages::success(__('messages.saved_successfully'),SubscriptionsResource::make($subject));
+        return Messages::success(__('messages.saved_successfully'),BillResource::make($bill));
     }
 
-    public function store(subscriptionsFormRequest $request)
+    public function store(billFormRequest $request)
     {
         return $this->save($request->validated());
     }
@@ -98,18 +107,17 @@ class SubscriptionsControllerResource extends Controller
     public function show(string $id)
     {
         //
-        $data  = subjects::query()->where('id', $id)->FailIfNotFound(__('errors.not_found_data'));
-        return SubjectsResource::make($data);
+
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(subscriptionsFormRequest $request , $id)
+    public function update(billFormRequest $request , $id)
     {
         $data = $request->validated();
         $data['id'] = $id;
-        return $this->save($data,request()->file('image'));
+        return $this->save($data);
     }
 
     /**
