@@ -50,7 +50,7 @@ class SubjectsVideosControllerResource extends Controller
         $data['user_id'] = auth()->id();
 
         // delete old video
-        if(array_key_exists('video',$data) && $data['video'] != null){
+        if(array_key_exists('video',$data) && $data['video'] != null && array_key_exists('id',$data)){
             $video = subjects_videos::query()->find($data['id']);
             unlink(public_path('videos/'.$video->video));
         }
