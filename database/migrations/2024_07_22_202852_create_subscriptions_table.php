@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('subject_id')->constrained('subjects')->cascadeOnUpdate()->cascadeOnDelete();
             $table->integer('price');
             $table->integer('discount')->default(0);
+            $table->tinyInteger('is_locked')->default(0);
             $table->string('note')->nullable();
             $table->timestamps();
         });

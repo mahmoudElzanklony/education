@@ -66,6 +66,7 @@ class SubscriptionsControllerResource extends Controller
     {
         DB::beginTransaction();
         $data['price'] = subjects::query()->find($data['subject_id'])->price;
+        $data['is_locked'] = 0;
         if(!(array_key_exists('id',$data))){
             $check = subscriptions::query()
                 ->where('user_id',$data['user_id'])
@@ -109,7 +110,7 @@ class SubscriptionsControllerResource extends Controller
     {
         $data = $request->validated();
         $data['id'] = $id;
-        return $this->save($data,request()->file('image'));
+        return $this->save($data);
     }
 
     /**

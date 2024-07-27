@@ -74,14 +74,22 @@ Route::group(['middleware'=>'changeLang'],function (){
         Route::get('/statics',[VideoViewController::class,'statics']);
     });
 
+    Route::post('/lock-subscription',[SubjectsControllerResource::class,'lock']);
+
+    // Define the remaining resource routes with middleware
+    Route::group(['middleware' => 'auth:sanctum'], function () {
+        Route::resource('bills', BillsControllerResource::class)->except('index');
+    });
     // resources
     Route::resources([
         'categories'=>CategoriesControllerResource::class,
         'subjects'=>SubjectsControllerResource::class,
         'subjects-videos'=>SubjectsVideosControllerResource::class,
         'subscriptions'=>SubscriptionsControllerResource::class,
-        'bills'=>BillsControllerResource::class
     ]);
+
+
+
 
     Route::post('/deleteitem',[GeneralServiceController::class,'delete_item']);
 

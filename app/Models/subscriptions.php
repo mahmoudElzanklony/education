@@ -9,7 +9,8 @@ class subscriptions extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id','subject_id','price','discount','note'];
+    protected $fillable = ['user_id','subject_id','is_locked','price','discount','note'];
+
 
     public function user()
     {

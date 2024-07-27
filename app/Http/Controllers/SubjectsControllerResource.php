@@ -106,11 +106,27 @@ class SubjectsControllerResource extends Controller
         $data = subscriptions::query()
             ->with('subject.image')
             ->where('user_id','=',auth()->id())
+            ->where('is_locked','=',0)
             ->orderBy('id','DESC')
             ->get();
         return SubscriptionsResource::collection($data);
     }
 
+
+    public function lock()
+    {
+        if(request()->filled('id')){
+            $subscription = subscriptions::query()->find(request('id'));
+            $subscription->is_locked = 1;
+            $subscription->save();
+            return Messages::success(__('messages.saved_successfully'),SubscriptionsResource::make($subscription));
+        }else if(request()->filled('ids')){
+            $subscription  = subscriptions::query()->whereIn('id',request('ids'))->update(['is_locked'=>1]);
+            $subscription = subscriptions::whereIn('id', request('ids'))->get();
+            return Messages::success(__('messages.saved_successfully'),SubscriptionsResource::collection($subscription));
+        }
+        return Messages::error('not found id or ids in request');
+    }
     /**
      * Remove the specified resource from storage.
      */
