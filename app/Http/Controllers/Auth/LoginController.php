@@ -54,7 +54,7 @@ class LoginController extends Controller
                     return Messages::error(['invalid credential']);
                 }
                 // token
-                $user['token'] =  request()->header('token');
+                $user['token'] =  request()->header('Authorization');
 
                 return Messages::success('',UserResource::make($user));
 
