@@ -42,6 +42,11 @@ class SubscriptionsControllerResource extends Controller
     }
     public function index()
     {
+
+        return subjects::query()
+            ->with('students')
+            ->first();
+
         $data = subscriptions::query()
             ->with(['subject','user'])
             ->orderBy('id','DESC');

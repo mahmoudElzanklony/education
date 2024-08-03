@@ -31,4 +31,12 @@ class subjects extends Model
     {
         return $this->morphOne(images::class,'imageable');
     }
+
+    public function students()
+    {
+        return $this->belongsToMany(User::class,subscriptions::class,'subject_id','user_id')
+            ->withPivot(['is_locked'])
+            ->as('subjects_students')
+            ->wherePivot('is_locked','=',0);
+    }
 }

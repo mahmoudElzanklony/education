@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Actions\DefaultAddress;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
+use App\Models\roles;
 use App\Models\User;
 use App\Services\Messages;
 use Illuminate\Http\Request;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class LoginController extends Controller
 {
@@ -37,4 +40,29 @@ class LoginController extends Controller
         auth()->logout();
         return Messages::success(__('messages.logout_successfully'));
     }
+
+    public function get_user_by_token(){
+        if(request()->hasHeader('token')) {
+            $token = request()->header('token');
+            request()->headers->set('token', (string)$token, true);
+            request()->headers->set('Authorization', 'Bearer ' . $token, true);
+            try {
+                $token = JWTAuth::parseToken();
+                $user = $token->authenticate();
+
+                if ($user == false) {
+                    return Messages::error(['invalid credential']);
+                }
+                // token
+                $user['token'] =  request()->header('token');
+
+                return Messages::success('',UserResource::make($user));
+
+
+            } catch (\Exception $e) {
+                return Messages::error([$e->getMessage()]);
+            }
+        }
+    }
+
 }
