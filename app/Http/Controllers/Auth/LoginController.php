@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Services\Messages;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Session;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 class LoginController extends Controller
@@ -61,6 +62,9 @@ class LoginController extends Controller
 
     public function getToken(Request $request)
     {
+        if (!Session::has('_token')) {
+            Session::start();
+        }
         return response()->json(['csrf_token' => csrf_token()]);
     }
 
