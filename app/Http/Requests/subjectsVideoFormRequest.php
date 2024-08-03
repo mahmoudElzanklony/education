@@ -24,6 +24,7 @@ class subjectsVideoFormRequest extends FormRequest
         return [
             'subject_id'=>'required|exists:subjects,id',
             'video'=>'filled|mimes:mp4',
+            'name'=>'required',
         ];
     }
 }
