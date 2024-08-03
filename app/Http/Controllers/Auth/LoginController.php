@@ -62,9 +62,7 @@ class LoginController extends Controller
 
     public function getToken(Request $request)
     {
-        if (!Session::has('_token')) {
-            Session::start();
-        }
+       
         return response()->json(['csrf_token' => csrf_token()]);
     }
 
