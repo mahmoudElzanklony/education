@@ -9,6 +9,7 @@ use App\Models\roles;
 use App\Models\User;
 use App\Services\Messages;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 class LoginController extends Controller
@@ -44,24 +45,16 @@ class LoginController extends Controller
     public function get_user_by_token(){
         if(request()->hasHeader('Authorization')) {
             $token = request()->header('Authorization');
-            request()->headers->set('token', (string)$token, true);
-            request()->headers->set('Authorization', 'Bearer ' . $token, true);
-            try {
-                $token = JWTAuth::parseToken();
-                $user = $token->authenticate();
 
-                if ($user == false) {
-                    return Messages::error(['invalid credential']);
-                }
-                // token
+            if ($token) {
+                $token_data = DB::table('personal_access_tokens')->where('token', hash('sha256', $token))->first();
+                $user_id = $token_data->tokenable_id;
+                $user = User::query()->find($user_id);
                 $user['token'] =  request()->header('Authorization');
 
                 return Messages::success('',UserResource::make($user));
-
-
-            } catch (\Exception $e) {
-                return Messages::error([$e->getMessage()]);
             }
+
         }
     }
 
