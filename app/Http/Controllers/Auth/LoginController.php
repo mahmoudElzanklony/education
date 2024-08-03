@@ -42,8 +42,8 @@ class LoginController extends Controller
     }
 
     public function get_user_by_token(){
-        if(request()->hasHeader('token')) {
-            $token = request()->header('token');
+        if(request()->hasHeader('Authorization')) {
+            $token = request()->header('Authorization');
             request()->headers->set('token', (string)$token, true);
             request()->headers->set('Authorization', 'Bearer ' . $token, true);
             try {
