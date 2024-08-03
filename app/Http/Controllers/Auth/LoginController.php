@@ -59,4 +59,9 @@ class LoginController extends Controller
         }
     }
 
+    public function getToken(Request $request)
+    {
+        return response()->json(['csrf_token' => csrf_token()]);
+    }
+
 }
