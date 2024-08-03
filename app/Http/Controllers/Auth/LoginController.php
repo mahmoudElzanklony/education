@@ -45,15 +45,16 @@ class LoginController extends Controller
     public function get_user_by_token(){
         if(request()->hasHeader('Authorization')) {
             $token = request()->header('Authorization');
-
             if ($token) {
-                $token_data = DB::table('personal_access_tokens')->where('token', hash('sha256', $token))->first();
-                $user_id = $token_data->tokenable_id;
+                [$id, $user_token] = explode('|', $token, 2);
+                $token_data = DB::table('personal_access_tokens')->where('token', hash('sha256', $user_token))->first();
+                $user_id = $token_data->tokenable_id; // !!!THIS ID WE CAN USE TO GET DATA OF YOUR USER!!!
                 $user = User::query()->find($user_id);
                 $user['token'] =  request()->header('Authorization');
 
                 return Messages::success('',UserResource::make($user));
             }
+
 
         }
     }
