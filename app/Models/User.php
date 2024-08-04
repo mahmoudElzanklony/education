@@ -85,4 +85,9 @@ class User extends Authenticatable
     /*protected $casts = [
         'phone_verified_at' => 'datetime',
     ];*/
+
+    public function subscriptions()
+    {
+        return $this->hasMany(subscriptions::class,'user_id');
+    }
 }

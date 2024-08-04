@@ -20,6 +20,14 @@ class UsersController extends Controller
     public function index()
     {
         $data = User::query()
+            ->with('subscriptions')
+            ->when(auth()->user()->type == 'doctor',function ($e){
+                $e->whereHas('subscriptions',function($e){
+                    $e->whereHas('subject',function ($q){
+                        $q->where('user_id','=',auth()->id());
+                    });
+                });
+            })
             ->orderBy('id','DESC');
 
         $output = app(Pipeline::class)
