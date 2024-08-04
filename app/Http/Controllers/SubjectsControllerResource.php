@@ -35,7 +35,7 @@ class SubjectsControllerResource extends Controller
     {
         $data = subjects::query()
             ->with(['image','category'])
-            ->orderBy('id','DESC')->get();
+            ->orderBy('id','DESC')->paginate(request('limit') ?? 10);
         return SubjectsResource::collection($data);
     }
 
